@@ -1,49 +1,59 @@
-body {
-    font-family: Arial, sans-serif;
-    background-color: #1e1e1e;
-    color: #ffffff;
-    margin: 0;
-    padding: 20px;
+// --- IMPORTANT ---
+// Replace 'YOUR_API_KEY_HERE' with your actual API key from FortniteAPI.io
+const apiKey = 'YOUR_API_KEY_HERE';
+// ---
+
+const shopContainer = document.getElementById('shop-container');
+const shopDateElement = document.getElementById('shop-date');
+
+// Function to fetch and display the shop data
+async function fetchShopItems() {
+    // Check if an API key is provided
+    if (apiKey === 'YOUR_API_KEY_HERE' || !apiKey) {
+        shopContainer.innerHTML = `<p style="color: red; text-align: center; grid-column: 1 / -1;">Error: Please add your API key in the script.js file.</p>`;
+        return;
+    }
+
+    try {
+        const response = await fetch('https://fortniteapi.io/v2/shop?lang=en', {
+            headers: {
+                'Authorization': apiKey
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        // Set the shop date
+        const date = new Date(data.lastUpdate.date);
+        shopDateElement.textContent = `Current Shop for: ${date.toLocaleDateString()}`;
+
+        // Clear previous items
+        shopContainer.innerHTML = '';
+
+        // Loop through shop items and create HTML elements
+        data.shop.forEach(item => {
+            const itemElement = document.createElement('div');
+            itemElement.classList.add('shop-item');
+
+            itemElement.innerHTML = `
+                <img src="${item.displayAssets[0].url}" alt="${item.displayName}">
+                <h2>${item.displayName}</h2>
+                <p>${item.rarity.name}</p>
+                <p>vBucks: ${item.price.finalPrice}</p>
+            `;
+            
+            shopContainer.appendChild(itemElement);
+        });
+
+    } catch (error) {
+        console.error("Failed to fetch shop items:", error);
+        shopContainer.innerHTML = `<p style="color: orange; text-align: center; grid-column: 1 / -1;">Could not load shop data. Please check the console for errors.</p>`;
+    }
 }
 
-header {
-    text-align: center;
-    margin-bottom: 30px;
-}
-
-h1 {
-    font-size: 2.5em;
-}
-
-#shop-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 20px;
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-.shop-item {
-    background-color: #2a2a2a;
-    border-radius: 8px;
-    overflow: hidden;
-    text-align: center;
-    padding-bottom: 10px;
-    border: 1px solid #444;
-}
-
-.shop-item img {
-    width: 100%;
-    height: auto;
-    background-color: #111;
-}
-
-.shop-item h2 {
-    font-size: 1.2em;
-    margin: 10px 0;
-}
-
-.shop-item p {
-    margin: 5px 0;
-    color: #aaa;
-}
+// Run the function when the page loads
+fetchShopItems();
